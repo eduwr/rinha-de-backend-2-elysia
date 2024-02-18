@@ -34,7 +34,10 @@ const app = new Elysia()
       }),
       body: t.Object({
         valor: t.Number(),
-        tipo: t.Union([t.Literal("c"), t.Literal("d")]),
+        tipo: t.Union([t.Literal("c"), t.Literal("d")], {
+          title: "tipo inválido",
+          description: "o tipo da transação só pode ser `c` ou `d`",
+        }),
         descricao: t.String({ minLength: 1, maxLength: 10 }),
       }),
     }
