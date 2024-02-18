@@ -1,0 +1,12 @@
+### Get Extrato
+GET http://localhost:3000/clientes/1/extrato
+
+### Create Transacao
+POST http://localhost:3000/clientes/2/transacoes
+Content-Type: application/json
+
+{
+  "descricao": "desc",
+  "tipo": "c",
+  "valor": 100
+}
