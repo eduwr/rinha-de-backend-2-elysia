@@ -22,6 +22,6 @@ CREATE TABLE transacoes (
     valor DECIMAL(10, 2),
     tipo CHAR(1),
     descricao TEXT,
-    realizada_em TIMESTAMP,
+    realizada_em TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (carteira_id) REFERENCES carteira(id)
 );

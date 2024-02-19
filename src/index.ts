@@ -1,4 +1,6 @@
 import { Elysia, t } from "elysia";
+import { db } from "./db";
+import { NewTransacao, Transacao } from "./types";
 
 const app = new Elysia()
   .get("/clientes/:id/extrato", () => "Hello Elysia", {
@@ -9,23 +11,38 @@ const app = new Elysia()
   .listen(3000)
   .post(
     "/clientes/:id/transacoes",
-    ({ body: { descricao, tipo, valor } }) => {
-      /** 
-        Uma transação de débito nunca pode deixar o saldo do cliente menor que seu limite disponível.
-        Por exemplo, um cliente com limite de 1000 (R$ 10) nunca deverá ter o saldo menor que -1000 (R$ -10).
-        Nesse caso, um saldo de -1001 ou menor significa inconsistência na Rinha de Backend!
-      */
-      if (tipo === "d") {
-        // maybe return the handler here
+    async ({ body: { descricao, tipo, valor }, params: { id }, set }) => {
+      const [carteira] = await db
+        .selectFrom("carteira")
+        .selectAll()
+        .where("id", "=", id)
+        .limit(1)
+        .execute();
+
+      const novoSaldo =
+        tipo === "c" ? carteira.saldo + valor : carteira.saldo - valor;
+      console.log(carteira, novoSaldo);
+
+      if (novoSaldo < carteira.limite) {
+        set.status = 422;
+        return { error: "você é pobre" };
       }
 
-      if (tipo === "c") {
-        // maybe return the handler here
-      }
+      const transacao: NewTransacao = {
+        carteira_id: carteira.id,
+        descricao,
+        tipo,
+        valor,
+      } as const;
+
+      await db
+        .insertInto("transacoes")
+        .values(transacao)
+        .executeTakeFirstOrThrow();
 
       return {
         limite: 100000,
-        saldo: -9098,
+        saldo: novoSaldo,
       };
     },
     {
